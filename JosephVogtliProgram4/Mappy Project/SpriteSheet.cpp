@@ -11,21 +11,21 @@ Sprite::~Sprite()
 void Sprite::InitSprites(int width, int height)
 {
 	x = 80;
-	y = -10;
+	y = 80;
 
 
-	maxFrame = 12;
+	maxFrame = 3;
 	curFrame = 0;
 	frameCount = 0;
 	frameDelay = 6;
-	frameWidth = 50;
-	frameHeight = 64;
-	animationColumns = 8;
-	animationRows = 2;
+	frameWidth = 32;
+	frameHeight = 32;
+	animationColumns = 4;
+	animationRows = 1;
 	animationDirection = 1;
 	jframe;
 
-	image = al_load_bitmap("guy.bmp");
+	image = al_load_bitmap("piku.png");
 	al_convert_mask_to_alpha(image, al_map_rgb(255,0,255));
 }
 
@@ -40,7 +40,7 @@ void Sprite::UpdateSprites(int width, int height, int dir)
 		if (++frameCount > frameDelay)
 		{
 			frameCount=0;
-			if (++curFrame > 8)
+			if (++curFrame > maxFrame)
 				curFrame=1;
 		}
 	}
@@ -50,12 +50,30 @@ void Sprite::UpdateSprites(int width, int height, int dir)
 		if (++frameCount > frameDelay)
 		{
 			frameCount = 0;
-			if (++curFrame > 8)
+			if (++curFrame > maxFrame)
 				curFrame = 1;
 		}
 	}
-	else if (dir == 3) { //space
+	else if (dir == 3) { //up key
 		animationDirection = 3;
+		y -= 2;
+		if (++frameCount > frameDelay)
+		{
+			frameCount = 0;
+			if (++curFrame > maxFrame)
+				curFrame = 1;
+		}
+
+	}
+	else if (dir == 4) { //down key
+		animationDirection = 4;
+		y += 2;
+		if (++frameCount > frameDelay)
+		{
+			frameCount = 0;
+			if (++curFrame > maxFrame)
+				curFrame = 1;
+		}
 	}
 		else //represent that they hit the space bar and that mean direction = 0
 			animationDirection = dir;
@@ -78,7 +96,14 @@ void Sprite::UpdateSprites(int width, int height, int dir)
 	}
 	else if (animationDirection == 3)
 	{
-		if (y < 100) { //collision detection from the bottom
+		if (collided(x + frameWidth, y)) { //collision detection from the bottom
+			x = oldx;
+			y = oldy;
+		}
+	}
+	else if (animationDirection == 4)
+	{
+		if (collided(x, y + frameHeight)) { //collision detection from the top
 			x = oldx;
 			y = oldy;
 		}
@@ -104,58 +129,13 @@ void Sprite::DrawSprites(int xoffset, int yoffset)
 	else if (animationDirection == 0) {
 		al_draw_bitmap_region(image, fx, fy, frameWidth, frameHeight, x - xoffset, y - yoffset, ALLEGRO_FLIP_HORIZONTAL);
 	}
-	else if (animationDirection == 3) {
-		for (int i = 0; i < 4; i++) {
-			int jx = (jframe % animationColumns) * frameWidth;
-			int jy = (jframe / animationColumns) * frameHeight;
-			if (++frameCount > frameDelay)
-			{
-				frameCount = 0;
-				if (++jframe > 12)
-					jframe = 8;
-			}
-			al_draw_bitmap_region(image, jx, jy, frameWidth, frameHeight, x - xoffset, y - yoffset, 0);
-		}
-	}
 	else if (animationDirection == 2) {
 		al_draw_bitmap_region(image, 0, 0, frameWidth, frameHeight, x - xoffset, y - yoffset, 0);
 	}
-}
-
-int Sprite::jumping(int jump, const int JUMPIT)
-{
-	//handle jumping
-	if (jump==JUMPIT) { 
-		if (collided(x + frameWidth / 2, y + frameHeight + 5) == 0) {
-			jump = 0;
-		}
-
+	else if (animationDirection == 3) {
+		al_draw_bitmap_region(image, fx, fy, frameWidth, frameHeight, x - xoffset, y - yoffset, 0);
 	}
-	else
-	{
-		y -= jump/3; 
-		jump--; 
-		curFrame=8;
+	else if (animationDirection == 4) {
+		al_draw_bitmap_region(image, fx, fy, frameWidth, frameHeight, x - xoffset, y - yoffset, 0);
 	}
-
-	if (jump<0) 
-	{ 
-		if (collided(x + frameWidth / 2, y + frameHeight))
-		{
-			jump = JUMPIT;
-			while (collided(x + frameWidth / 2, y + frameHeight))
-			{
-				y -= 3;
-			}
-		}
-		else if (collided(x + frameWidth / 2, y + frameHeight) == 2)
-		{
-			while (collided(x + frameWidth / 2, y + frameHeight) == 2)
-			{
-				y += 3;
-			}
-		}
-
-	}
-	return jump;
 }
